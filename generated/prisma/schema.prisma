@@ -5,31 +5,26 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  
 }
 
-
-
 model User {
-  id            String    @id @default(cuid())
+  id            String   @id @default(cuid())
   name          String
-  email         String    @unique
-  emailVerified Boolean   @default(false)
+  email         String   @unique
+  emailVerified Boolean  @default(false)
   image         String?
-  role          Role      @default(STUDENT)
-  isBanned      Boolean   @default(false)
+  role          Role     @default(STUDENT)
+  isBanned      Boolean  @default(false)
   banReason     String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  
-  sessions      Session[]
-  accounts      Account[]
+  sessions Session[]
+  accounts Account[]
 
-  
-  tutorProfile  TutorProfile?
-  bookingsAsStudent Booking[] @relation("StudentBookings")
-  reviews       Review[]
+  tutorProfile      TutorProfile?
+  bookingsAsStudent Booking[]     @relation("StudentBookings")
+  reviews           Review[]
 
   @@map("users")
 }
@@ -49,20 +44,20 @@ model Session {
 }
 
 model Account {
-  id                String    @id @default(cuid())
-  accountId         String
-  providerId        String
-  userId            String
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  accessToken       String?
-  refreshToken      String?
-  idToken           String?
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
   accessTokenExpiresAt  DateTime?
   refreshTokenExpiresAt DateTime?
-  scope             String?
-  password          String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   @@map("accounts")
 }
@@ -78,17 +73,15 @@ model Verification {
   @@map("verifications")
 }
 
-
-
 model Category {
-  id           String         @id @default(cuid())
-  name         String         @unique
-  slug         String         @unique
-  description  String?
-  icon         String?
-  isActive     Boolean        @default(true)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  icon        String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   tutorProfiles TutorProfile[]
 
@@ -96,24 +89,24 @@ model Category {
 }
 
 model TutorProfile {
-  id           String    @id @default(cuid())
-  userId       String    @unique
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  bio          String?
-  headline     String?
-  hourlyRate   Float
-  experience   Int       @default(0) 
-  languages    String[]  @default([])
-  isVerified   Boolean   @default(false)
-  isActive     Boolean   @default(true)
-  avgRating    Float     @default(0)
-  totalReviews Int       @default(0)
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio           String?
+  headline      String?
+  hourlyRate    Float
+  experience    Int      @default(0)
+  languages     String[] @default([])
+  isVerified    Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  avgRating     Float    @default(0)
+  totalReviews  Int      @default(0)
   totalSessions Int      @default(0)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  categoryId   String
-  category     Category  @relation(fields: [categoryId], references: [id])
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
 
   availability Availability[]
   bookings     Booking[]      @relation("TutorBookings")
@@ -123,15 +116,15 @@ model TutorProfile {
 }
 
 model Availability {
-  id           String       @id @default(cuid())
-  tutorId      String
-  tutor        TutorProfile @relation(fields: [tutorId], references: [id], onDelete: Cascade)
-  dayOfWeek    Int          
-  startTime    String      
-  endTime      String       
-  isActive     Boolean      @default(true)
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  id        String       @id @default(cuid())
+  tutorId   String
+  tutor     TutorProfile @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  dayOfWeek Int
+  startTime String
+  endTime   String
+  isActive  Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
 
   @@unique([tutorId, dayOfWeek, startTime])
   @@map("availabilities")
@@ -154,7 +147,7 @@ model Booking {
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
-  review       Review?
+  review Review?
 
   @@map("bookings")
 }
@@ -167,14 +160,13 @@ model Review {
   student   User         @relation(fields: [studentId], references: [id])
   tutorId   String
   tutor     TutorProfile @relation(fields: [tutorId], references: [id])
-  rating    Int          
+  rating    Int
   comment   String?
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 
   @@map("reviews")
 }
-
 
 enum Role {
   STUDENT
