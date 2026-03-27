@@ -8,7 +8,7 @@ const tutorProfileSchema = z.object({
   headline: z.string().max(200).optional(),
   hourlyRate: z.number().min(1).max(1000),
   experience: z.number().min(0).max(50).optional(),
-  education: z.string().optional(),
+  
   languages: z.array(z.string()).optional(),
   categoryId: z.string().cuid(),
 });

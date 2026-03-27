@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 async function main() {
   console.log(" Seeding database...");
 
-  // ─── Categories ──────────────────────────────────────────────────────────
+  // ─── Categories ───
   const categories = await Promise.all([
     prisma.category.upsert({
       where: { slug: "mathematics" },
@@ -87,7 +87,7 @@ async function main() {
         headline: "Full-Stack Developer & Programming Tutor",
         hourlyRate: 25,
         experience: 5,
-        education: "BSc Computer Science",
+        
         languages: ["English", "Bengali"],
         isVerified: true,
         categoryId: categories[1].id, 
