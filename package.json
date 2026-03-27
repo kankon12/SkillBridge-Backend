@@ -20,8 +20,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@auth/prisma-adapter": "^2.11.1",
     "@prisma/adapter-pg": "^7.5.0",
-    "@prisma/client": "^7.5.0",
+    "@prisma/client": "^5.22.0",
     "bcrypt": "^6.0.0",
     "better-auth": "^1.5.6",
     "cookie-parser": "^1.4.7",
@@ -43,8 +44,8 @@
     "@types/pg": "^8.20.0",
     "eslint": "^10.1.0",
     "prettier": "^3.8.1",
-    "prisma": "^7.5.0",
+    "prisma": "^5.22.0",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^6.0.2"
+    "typescript": "^5.4.5"
   }
 }
