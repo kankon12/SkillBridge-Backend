@@ -139,9 +139,9 @@ export const updateAvailability = async (req: Request, res: Response, next: Next
     const { slots } = availabilitySchema.parse(req.body);
 
     const tutorProfile = await prisma.tutorProfile.findUnique({ where: { userId } });
-    if (!tutorProfile) return sendError(res, "Tutor profile not found. Create profile first.", 404);
+    if (!tutorProfile) return sendError(res, "Tutor profile not found. Create profile first than come.", 404);
 
-    // Replace all availability slots
+   
     await prisma.availability.deleteMany({ where: { tutorId: tutorProfile.id } });
 
     const availability = await prisma.availability.createMany({
