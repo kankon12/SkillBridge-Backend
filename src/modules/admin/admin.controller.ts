@@ -128,7 +128,54 @@ export const getAllBookings = async (req: Request, res: Response, next: NextFunc
   }
 };
 
+// GET /api/admin/stats
+export const getStats = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const [
+      totalUsers,
+      totalStudents,
+      totalTutors,
+      totalBookings,
+      completedBookings,
+      cancelledBookings,
+      totalRevenue,
+      topTutors,
+    ] = await Promise.all([
+      prisma.user.count(),
+      prisma.user.count({ where: { role: "STUDENT" } }),
+      prisma.user.count({ where: { role: "TUTOR" } }),
+      prisma.booking.count(),
+      prisma.booking.count({ where: { status: "COMPLETED" } }),
+      prisma.booking.count({ where: { status: "CANCELLED" } }),
+      prisma.booking.aggregate({
+        where: { status: "COMPLETED" },
+        _sum: { totalPrice: true },
+      }),
+      prisma.tutorProfile.findMany({
+        take: 5,
+        orderBy: { totalSessions: "desc" },
+        include: {
+          user: { select: { name: true, email: true, image: true } },
+          category: { select: { name: true } },
+        },
+      }),
+    ]);
 
+    return sendSuccess(res, {
+      users: { total: totalUsers, students: totalStudents, tutors: totalTutors },
+      bookings: {
+        total: totalBookings,
+        completed: completedBookings,
+        cancelled: cancelledBookings,
+        pending: totalBookings - completedBookings - cancelledBookings,
+      },
+      revenue: { total: totalRevenue._sum.totalPrice || 0 },
+      topTutors,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 // PATCH /api/admin/tutors/:id/verify
 export const verifyTutor = async (req: Request, res: Response, next: NextFunction) => {
