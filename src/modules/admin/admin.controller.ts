@@ -93,3 +93,58 @@ export const updateUserStatus = async (req: Request, res: Response, next: NextFu
   }
 };
 
+// GET /api/admin/bookings
+export const getAllBookings = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { status, page = "1", limit = "10" } = req.query;
+
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const skip = (pageNum - 1) * limitNum;
+
+    const where: any = {};
+    if (status) where.status = status;
+
+    const [bookings, total] = await Promise.all([
+      prisma.booking.findMany({
+        where,
+        include: {
+          student: { select: { id: true, name: true, email: true } },
+          tutor: {
+            include: { user: { select: { id: true, name: true, email: true } } },
+          },
+          review: { select: { rating: true, comment: true } },
+        },
+        skip,
+        take: limitNum,
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.booking.count({ where }),
+    ]);
+
+    return sendPaginated(res, bookings, total, pageNum, limitNum);
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
+// PATCH /api/admin/tutors/:id/verify
+export const verifyTutor = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+
+    const tutor = await prisma.tutorProfile.findUnique({ where: { id } });
+    if (!tutor) return sendError(res, "Tutor profile not found", 404);
+
+    const updated = await prisma.tutorProfile.update({
+      where: { id },
+      data: { isVerified: !tutor.isVerified },
+    });
+
+    return sendSuccess(res, updated, `Tutor ${updated.isVerified ? "verified" : "unverified"}`);
+  } catch (error) {
+    next(error);
+  }
+};
