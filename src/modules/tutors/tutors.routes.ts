@@ -15,7 +15,7 @@ const router = Router();
 router.get("/", getTutors);
 router.get("/:id", getTutorById);
 
-// Tutor private routes (prefixed /tutor in main router)
+// Tutor private routes 
 router.put("/profile", authenticate, requireTutor, updateTutorProfile);
 router.put("/availability", authenticate, requireTutor, updateAvailability);
 router.get("/sessions", authenticate, requireTutor, getTutorSessions);

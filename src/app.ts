@@ -20,7 +20,7 @@ app.use(
 );
 
 
-app.all("/api/auth/*", toNodeHandler(auth));
+app.all("/api/auth/{*path}", toNodeHandler(auth));
 
 // Body Parser
 app.use(express.json());
