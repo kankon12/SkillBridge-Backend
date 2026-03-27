@@ -82,7 +82,7 @@ export const getTutors = async (req: Request, res: Response, next: NextFunction)
 // GET /api/tutors/:id (Public)
 export const getTutorById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     const tutor = await prisma.tutorProfile.findUnique({
       where: { id },

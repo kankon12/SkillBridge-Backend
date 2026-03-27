@@ -126,7 +126,7 @@ export const getMyBookings = async (req: Request, res: Response, next: NextFunct
 // GET /api/bookings/:id
 export const getBookingById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const userId = req.user!.id;
     const userRole = req.user!.role;
 
@@ -161,7 +161,7 @@ export const getBookingById = async (req: Request, res: Response, next: NextFunc
 // PATCH /api/bookings/:id/cancel  (Student)
 export const cancelBooking = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const studentId = req.user!.id;
     const { reason } = cancelBookingSchema.parse(req.body);
 
@@ -187,7 +187,7 @@ export const cancelBooking = async (req: Request, res: Response, next: NextFunct
 // PATCH /api/bookings/:id/complete  (Tutor)
 export const completeBooking = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const userId = req.user!.id;
 
     const booking = await prisma.booking.findUnique({

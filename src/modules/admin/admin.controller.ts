@@ -68,7 +68,7 @@ export const getAllUsers = async (req: Request, res: Response, next: NextFunctio
 // PATCH /api/admin/users/:id  (ban/unban)
 export const updateUserStatus = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { isBanned, banReason } = updateUserStatusSchema.parse(req.body);
 
     const user = await prisma.user.findUnique({ where: { id } });
@@ -180,7 +180,7 @@ export const getStats = async (req: Request, res: Response, next: NextFunction) 
 // PATCH /api/admin/tutors/:id/verify
 export const verifyTutor = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     const tutor = await prisma.tutorProfile.findUnique({ where: { id } });
     if (!tutor) return sendError(res, "Tutor profile not found", 404);

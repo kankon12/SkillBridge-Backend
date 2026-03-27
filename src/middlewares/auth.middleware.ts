@@ -18,7 +18,7 @@ declare global {
   }
 }
 
-// ─── Verify session via Better Auth ──────────────────────────────────────────
+// ─── Verify session via Better Auth 
 export const authenticate = async (
   req: Request,
   res: Response,
@@ -54,7 +54,7 @@ export const authenticate = async (
   }
 };
 
-// ─── Role-based guards ────────────────────────────────────────────────────────
+// ─── Role-based guards 
 export const requireRole = (...roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {

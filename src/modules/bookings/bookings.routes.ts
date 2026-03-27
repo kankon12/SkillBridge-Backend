@@ -6,7 +6,8 @@ import {
   cancelBooking,
   completeBooking,
 } from "./bookings.controller";
-import { authenticate, requireStudent, requireTutor } from "../../middleware/auth.middleware";
+import { authenticate, requireStudent, requireTutor } from "../../middlewares/auth.middleware";
+
 
 const router = Router();
 

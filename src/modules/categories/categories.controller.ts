@@ -38,7 +38,7 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
 // PATCH /api/admin/categories/:id
 export const updateCategory = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const data = categorySchema.partial().parse(req.body);
     const category = await prisma.category.update({ where: { id }, data });
     return sendSuccess(res, category, "Category updated");
@@ -50,7 +50,7 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
 // DELETE /api/admin/categories/:id
 export const deleteCategory = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     await prisma.category.update({ where: { id }, data: { isActive: false } });
     return sendSuccess(res, null, "Category deactivated");
   } catch (error) {

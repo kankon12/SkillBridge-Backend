@@ -6,7 +6,8 @@ import {
   updateAvailability,
   getTutorSessions,
 } from "./tutors.controller";
-import { authenticate, requireTutor } from "../../middleware/auth.middleware";
+import { authenticate, requireTutor } from "../../middlewares/auth.middleware";
+
 
 const router = Router();
 

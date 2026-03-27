@@ -1,5 +1,5 @@
 import { Response } from "express";
-
+ 
 export const sendSuccess = (
   res: Response,
   data: unknown,
@@ -12,20 +12,25 @@ export const sendSuccess = (
     data,
   });
 };
-
+ 
 export const sendError = (
   res: Response,
   message = "Something went wrong",
   statusCode = 500,
-  errors?: unknown
+  errors?: Record<string, unknown> | unknown[]
 ) => {
-  return res.status(statusCode).json({
+  const body: Record<string, unknown> = {
     success: false,
     message,
-    ...(errors && { errors }),
-  });
+  };
+ 
+  if (errors !== undefined) {
+    body.errors = errors;
+  }
+ 
+  return res.status(statusCode).json(body);
 };
-
+ 
 export const sendPaginated = (
   res: Response,
   data: unknown[],

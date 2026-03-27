@@ -11,7 +11,8 @@ import {
   updateCategory,
   deleteCategory,
 } from "../categories/categories.controller";
-import { authenticate, requireAdmin } from "../../middleware/auth.middleware";
+import { authenticate, requireAdmin } from "../../middlewares/auth.middleware";
+
 
 const router = Router();
 
