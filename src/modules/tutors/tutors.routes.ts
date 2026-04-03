@@ -8,16 +8,15 @@ import {
 } from "./tutors.controller";
 import { authenticate, requireTutor } from "../../middlewares/auth.middleware";
 
-
 const router = Router();
 
-// Public
+// ─── Private Tutor Routes  ──────────────────
+router.put("/me/profile", authenticate, requireTutor, updateTutorProfile);
+router.put("/me/availability", authenticate, requireTutor, updateAvailability);
+router.get("/me/sessions", authenticate, requireTutor, getTutorSessions);
+
+// ─── Public Routes ────────────────────────────────
 router.get("/", getTutors);
 router.get("/:id", getTutorById);
-
-// Tutor private routes 
-router.put("/profile", authenticate, requireTutor, updateTutorProfile);
-router.put("/availability", authenticate, requireTutor, updateAvailability);
-router.get("/sessions", authenticate, requireTutor, getTutorSessions);
 
 export default router;

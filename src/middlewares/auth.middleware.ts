@@ -3,6 +3,8 @@ import { auth } from "../lib/auth";
 import { sendError } from "../lib/response";
 import { prisma } from "../lib/prisma";
 
+type UserRole = "STUDENT" | "TUTOR" | "ADMIN";
+
 // Extend Express Request type
 declare global {
   namespace Express {
@@ -11,14 +13,14 @@ declare global {
         id: string;
         email: string;
         name: string;
-        role: string;
+        role: UserRole;
         isBanned: boolean;
       };
     }
   }
 }
 
-// ─── Verify session via Better Auth 
+// ─── Verify session via Better Auth ─────────────────────────────────────────
 export const authenticate = async (
   req: Request,
   res: Response,
@@ -47,15 +49,18 @@ export const authenticate = async (
       return sendError(res, "Your account has been banned. Contact support.", 403);
     }
 
-    req.user = user;
+    req.user = {
+      ...user,
+      role: user.role as UserRole,
+    };
     next();
   } catch (error) {
     return sendError(res, "Authentication failed.", 401);
   }
 };
 
-// ─── Role-based guards 
-export const requireRole = (...roles: string[]) => {
+// ─── Role-based guards ───────────────────────────────────────────────────────
+export const requireRole = (...roles: UserRole[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
       return sendError(res, "Unauthorized.", 401);

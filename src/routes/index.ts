@@ -12,9 +12,8 @@ const router = Router();
 // Auth
 router.use("/auth", authRoutes);
 
-// Tutors
+// Tutors 
 router.use("/tutors", tutorRoutes);
-router.use("/tutor", tutorRoutes);
 
 // Bookings
 router.use("/bookings", bookingRoutes);

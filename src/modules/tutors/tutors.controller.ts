@@ -8,7 +8,6 @@ const tutorProfileSchema = z.object({
   headline: z.string().max(200).optional(),
   hourlyRate: z.number().min(1).max(1000),
   experience: z.number().min(0).max(50).optional(),
-  
   languages: z.array(z.string()).optional(),
   categoryId: z.string().cuid(),
 });
@@ -23,9 +22,20 @@ const availabilitySchema = z.object({
   ),
 });
 
+const getTutorsQuerySchema = z.object({
+  category: z.string().max(100).optional(),
+  minPrice: z.string().optional(),
+  maxPrice: z.string().optional(),
+  minRating: z.string().optional(),
+  search: z.string().max(100).optional(),
+  page: z.string().optional(),
+  limit: z.string().optional(),
+});
+
 // GET /api/tutors  (Public - with filters)
 export const getTutors = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const query = getTutorsQuerySchema.parse(req.query);
     const {
       category,
       minPrice,
@@ -34,10 +44,10 @@ export const getTutors = async (req: Request, res: Response, next: NextFunction)
       search,
       page = "1",
       limit = "10",
-    } = req.query;
+    } = query;
 
-    const pageNum = parseInt(page as string);
-    const limitNum = parseInt(limit as string);
+    const pageNum = Math.max(1, parseInt(page));
+    const limitNum = Math.min(50, Math.max(1, parseInt(limit)));
     const skip = (pageNum - 1) * limitNum;
 
     const where: any = { isActive: true };
@@ -45,15 +55,15 @@ export const getTutors = async (req: Request, res: Response, next: NextFunction)
     if (category) where.category = { slug: category };
     if (minPrice || maxPrice) {
       where.hourlyRate = {};
-      if (minPrice) where.hourlyRate.gte = parseFloat(minPrice as string);
-      if (maxPrice) where.hourlyRate.lte = parseFloat(maxPrice as string);
+      if (minPrice) where.hourlyRate.gte = parseFloat(minPrice);
+      if (maxPrice) where.hourlyRate.lte = parseFloat(maxPrice);
     }
-    if (minRating) where.avgRating = { gte: parseFloat(minRating as string) };
+    if (minRating) where.avgRating = { gte: parseFloat(minRating) };
     if (search) {
       where.OR = [
-        { headline: { contains: search as string, mode: "insensitive" } },
-        { bio: { contains: search as string, mode: "insensitive" } },
-        { user: { name: { contains: search as string, mode: "insensitive" } } },
+        { headline: { contains: search, mode: "insensitive" } },
+        { bio: { contains: search, mode: "insensitive" } },
+        { user: { name: { contains: search, mode: "insensitive" } } },
       ];
     }
 
@@ -82,7 +92,7 @@ export const getTutors = async (req: Request, res: Response, next: NextFunction)
 // GET /api/tutors/:id (Public)
 export const getTutorById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const id = req.params.id as string;
+   const id = req.params.id as string;
 
     const tutor = await prisma.tutorProfile.findUnique({
       where: { id },
@@ -97,6 +107,7 @@ export const getTutorById = async (req: Request, res: Response, next: NextFuncti
           orderBy: { createdAt: "desc" },
           take: 10,
         },
+        _count: { select: { reviews: true, bookings: true } },
       },
     });
 
@@ -108,18 +119,34 @@ export const getTutorById = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-// PUT /api/tutor/profile (Tutor only)
+// PUT /api/tutors/me/profile (Tutor only)
 export const updateTutorProfile = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.id;
     const data = tutorProfileSchema.partial().parse(req.body);
+
+    // Validate categoryId exists if provided
+    if (data.categoryId) {
+      const category = await prisma.category.findUnique({
+        where: { id: data.categoryId, isActive: true },
+      });
+      if (!category) return sendError(res, "Category not found or inactive", 404);
+    }
+
+    const existingProfile = await prisma.tutorProfile.findUnique({ where: { userId } });
+
+    if (!existingProfile) {
+      // Creating for first time - hourlyRate and categoryId are required
+      if (!data.hourlyRate) return sendError(res, "hourlyRate is required for first-time profile creation", 400);
+      if (!data.categoryId) return sendError(res, "categoryId is required for first-time profile creation", 400);
+    }
 
     const profile = await prisma.tutorProfile.upsert({
       where: { userId },
       update: data,
       create: {
         userId,
-        hourlyRate: data.hourlyRate || 10,
+        hourlyRate: data.hourlyRate!,
         categoryId: data.categoryId!,
         ...data,
       },
@@ -132,23 +159,28 @@ export const updateTutorProfile = async (req: Request, res: Response, next: Next
   }
 };
 
-// PUT /api/tutor/availability (Tutor only)
+// PUT /api/tutors/me/availability (Tutor only)
 export const updateAvailability = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.id;
     const { slots } = availabilitySchema.parse(req.body);
 
     const tutorProfile = await prisma.tutorProfile.findUnique({ where: { userId } });
-    if (!tutorProfile) return sendError(res, "Tutor profile not found. Create profile first than come.", 404);
+    if (!tutorProfile) return sendError(res, "Tutor profile not found. Create your profile first.", 404);
 
-   
-    await prisma.availability.deleteMany({ where: { tutorId: tutorProfile.id } });
+    // ✅ Use transaction - delete old then create new atomically
+    await prisma.$transaction([
+      prisma.availability.deleteMany({ where: { tutorId: tutorProfile.id } }),
+      prisma.availability.createMany({
+        data: slots.map((slot) => ({
+          tutorId: tutorProfile.id,
+          ...slot,
+        })),
+      }),
+    ]);
 
-    const availability = await prisma.availability.createMany({
-      data: slots.map((slot) => ({
-        tutorId: tutorProfile.id,
-        ...slot,
-      })),
+    const availability = await prisma.availability.findMany({
+      where: { tutorId: tutorProfile.id },
     });
 
     return sendSuccess(res, availability, "Availability updated");
@@ -157,7 +189,7 @@ export const updateAvailability = async (req: Request, res: Response, next: Next
   }
 };
 
-// GET /api/tutor/sessions (Tutor - their bookings)
+// GET /api/tutors/me/sessions (Tutor - their bookings)
 export const getTutorSessions = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.id;
@@ -166,8 +198,8 @@ export const getTutorSessions = async (req: Request, res: Response, next: NextFu
     const tutorProfile = await prisma.tutorProfile.findUnique({ where: { userId } });
     if (!tutorProfile) return sendError(res, "Tutor profile not found", 404);
 
-    const pageNum = parseInt(page as string);
-    const limitNum = parseInt(limit as string);
+    const pageNum = Math.max(1, parseInt(page as string));
+    const limitNum = Math.min(50, Math.max(1, parseInt(limit as string)));
     const skip = (pageNum - 1) * limitNum;
 
     const where: any = { tutorId: tutorProfile.id };

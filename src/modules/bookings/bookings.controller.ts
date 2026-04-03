@@ -35,26 +35,34 @@ export const createBooking = async (req: Request, res: Response, next: NextFunct
       return sendError(res, "You cannot book your own profile", 400);
     }
 
-    // Check for conflicting bookings
-    const scheduledAt = new Date(data.scheduledAt);
-    const endTime = new Date(scheduledAt.getTime() + data.durationMins * 60 * 1000);
+    // ✅ Proper overlap conflict check
+    // New booking window: [newStart, newEnd]
+    // Existing booking window: [existStart, existStart + existDuration]
+    // Overlap condition: newStart < existEnd AND existStart < newEnd
+    const newStart = new Date(data.scheduledAt);
+    const newEnd = new Date(newStart.getTime() + data.durationMins * 60 * 1000);
 
-    const conflict = await prisma.booking.findFirst({
+    const conflictingBookings = await prisma.booking.findMany({
       where: {
         tutorId: data.tutorId,
         status: "CONFIRMED",
-        scheduledAt: { lt: endTime },
-        AND: [
-          {
-            scheduledAt: {
-              gte: new Date(scheduledAt.getTime() - data.durationMins * 60 * 1000),
-            },
-          },
-        ],
+        scheduledAt: {
+          // existStart must be before newEnd
+          lt: newEnd,
+          // existStart must be after (newStart - max possible duration 240 mins)
+          gte: new Date(newStart.getTime() - 240 * 60 * 1000),
+        },
       },
     });
 
-    if (conflict) {
+    // Check each candidate for actual overlap
+    const hasConflict = conflictingBookings.some((booking) => {
+      const existStart = booking.scheduledAt;
+      const existEnd = new Date(existStart.getTime() + booking.durationMins * 60 * 1000);
+      return newStart < existEnd && existStart < newEnd;
+    });
+
+    if (hasConflict) {
       return sendError(res, "This time slot is already booked", 409);
     }
 
@@ -67,7 +75,7 @@ export const createBooking = async (req: Request, res: Response, next: NextFunct
         tutorId: tutorProfile.id,
         subject: data.subject,
         notes: data.notes,
-        scheduledAt,
+        scheduledAt: newStart,
         durationMins: data.durationMins,
         totalPrice,
         status: "CONFIRMED",
@@ -88,14 +96,24 @@ export const createBooking = async (req: Request, res: Response, next: NextFunct
 // GET /api/bookings  (Student - their bookings)
 export const getMyBookings = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const studentId = req.user!.id;
+    const userId = req.user!.id;
+    const userRole = req.user!.role;
     const { status, page = "1", limit = "10" } = req.query;
 
-    const pageNum = parseInt(page as string);
-    const limitNum = parseInt(limit as string);
+    const pageNum = Math.max(1, parseInt(page as string));
+    const limitNum = Math.min(50, Math.max(1, parseInt(limit as string)));
     const skip = (pageNum - 1) * limitNum;
 
-    const where: any = { studentId };
+    // If tutor, show their tutor bookings; if student, show student bookings
+    let where: any = {};
+    if (userRole === "STUDENT") {
+      where.studentId = userId;
+    } else if (userRole === "TUTOR") {
+      const tutorProfile = await prisma.tutorProfile.findUnique({ where: { userId } });
+      if (!tutorProfile) return sendError(res, "Tutor profile not found", 404);
+      where.tutorId = tutorProfile.id;
+    }
+
     if (status) where.status = status;
 
     const [bookings, total] = await Promise.all([
@@ -108,6 +126,7 @@ export const getMyBookings = async (req: Request, res: Response, next: NextFunct
               category: true,
             },
           },
+          student: { select: { id: true, name: true, image: true } },
           review: true,
         },
         skip,
@@ -126,7 +145,7 @@ export const getMyBookings = async (req: Request, res: Response, next: NextFunct
 // GET /api/bookings/:id
 export const getBookingById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const id = req.params.id as string;
+  const id = req.params.id as string;
     const userId = req.user!.id;
     const userRole = req.user!.role;
 
@@ -143,7 +162,6 @@ export const getBookingById = async (req: Request, res: Response, next: NextFunc
 
     if (!booking) return sendError(res, "Booking not found", 404);
 
-    // Only student, tutor, or admin can view
     const isStudent = booking.studentId === userId;
     const isTutor = booking.tutor.userId === userId;
     const isAdmin = userRole === "ADMIN";
@@ -161,7 +179,7 @@ export const getBookingById = async (req: Request, res: Response, next: NextFunc
 // PATCH /api/bookings/:id/cancel  (Student)
 export const cancelBooking = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const id = req.params.id as string;
+   const id = req.params.id as string;
     const studentId = req.user!.id;
     const { reason } = cancelBookingSchema.parse(req.body);
 
