@@ -1,11 +1,11 @@
 import { Router } from "express";
 
-import authRoutes from "../modules/auth/auth.routes";
-import tutorRoutes from "../modules/tutors/tutors.routes";
-import bookingRoutes from "../modules/bookings/bookings.routes";
-import reviewRoutes from "../modules/reviews/reviews.routes";
-import categoryRoutes from "../modules/categories/categories.routes";
-import adminRoutes from "../modules/admin/admin.routes";
+import authRoutes from "../modules/auth/auth.routes.js";
+import tutorRoutes from "../modules/tutors/tutors.routes.js";
+import bookingRoutes from "../modules/bookings/bookings.routes.js";
+import reviewRoutes from "../modules/reviews/reviews.routes.js";
+import categoryRoutes from "../modules/categories/categories.routes.js";
+import adminRoutes from "../modules/admin/admin.routes.js";
 
 const router = Router();
 
@@ -28,3 +28,5 @@ router.use("/categories", categoryRoutes);
 router.use("/admin", adminRoutes);
 
 export default router;
+
+

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { prisma } from "../../lib/prisma";
-import { sendSuccess, sendError, sendPaginated } from "../../lib/response";
+import { prisma } from "../../lib/prisma.js";
+import { sendSuccess, sendError, sendPaginated } from "../../lib/response.js";
 import { z } from "zod";
 
 const reviewSchema = z.object({
@@ -95,3 +95,5 @@ export const getTutorReviews = async (req: Request, res: Response, next: NextFun
     next(error);
   }
 };
+
+

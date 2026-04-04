@@ -5,8 +5,8 @@ import {
   updateTutorProfile,
   updateAvailability,
   getTutorSessions,
-} from "./tutors.controller";
-import { authenticate, requireTutor } from "../../middlewares/auth.middleware";
+} from "./tutors.controller.js";
+import { authenticate, requireTutor } from "../../middlewares/auth.middleware.js";
 
 const router = Router();
 
@@ -20,3 +20,5 @@ router.get("/", getTutors);
 router.get("/:id", getTutorById);
 
 export default router;
+
+

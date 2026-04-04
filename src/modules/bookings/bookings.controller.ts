@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { prisma } from "../../lib/prisma";
-import { sendSuccess, sendError, sendPaginated } from "../../lib/response";
+import { prisma } from "../../lib/prisma.js";
+import { sendSuccess, sendError, sendPaginated } from "../../lib/response.js";
 import { z } from "zod";
 
 const createBookingSchema = z.object({
@@ -53,7 +53,7 @@ export const createBooking = async (req: Request, res: Response, next: NextFunct
     });
 
     
-    const hasConflict = conflictingBookings.some((booking) => {
+    const hasConflict = conflictingBookings.some((booking: { scheduledAt: Date; durationMins: number }) => {
       const existStart = booking.scheduledAt;
       const existEnd = new Date(existStart.getTime() + booking.durationMins * 60 * 1000);
       return newStart < existEnd && existStart < newEnd;
@@ -75,7 +75,7 @@ export const createBooking = async (req: Request, res: Response, next: NextFunct
       },
     });
 
-    const hasStudentConflict = studentConflict.some((booking) => {
+    const hasStudentConflict = studentConflict.some((booking: { scheduledAt: Date; durationMins: number }) => {
       const existStart = booking.scheduledAt;
       const existEnd = new Date(existStart.getTime() + booking.durationMins * 60 * 1000);
       return newStart < existEnd && existStart < newEnd;
@@ -259,3 +259,5 @@ export const completeBooking = async (req: Request, res: Response, next: NextFun
     next(error);
   }
 };
+
+

@@ -5,13 +5,13 @@ import {
   getAllBookings,
   getStats,
   verifyTutor,
-} from "./admin.controller";
+} from "./admin.controller.js";
 import {
   createCategory,
   updateCategory,
   deleteCategory,
-} from "../categories/categories.controller";
-import { authenticate, requireAdmin } from "../../middlewares/auth.middleware";
+} from "../categories/categories.controller.js";
+import { authenticate, requireAdmin } from "../../middlewares/auth.middleware.js";
 
 
 const router = Router();
@@ -32,3 +32,5 @@ router.patch("/categories/:id", updateCategory);
 router.delete("/categories/:id", deleteCategory);
 
 export default router;
+
+

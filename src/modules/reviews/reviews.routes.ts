@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { createReview, getTutorReviews } from "./reviews.controller";
-import { authenticate, requireStudent } from "../../middlewares/auth.middleware";
+import { createReview, getTutorReviews } from "./reviews.controller.js";
+import { authenticate, requireStudent } from "../../middlewares/auth.middleware.js";
 
 const router = Router()
 
@@ -11,3 +11,5 @@ router.get("/tutor/:tutorId", getTutorReviews);
 router.post("/", authenticate, requireStudent, createReview);
 
 export default router;
+
+

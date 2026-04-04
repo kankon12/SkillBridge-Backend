@@ -1,13 +1,16 @@
 import express from "express";
 import cors from "cors";
-import routes from "./routes";
-import { errorHandler, notFound } from "./middlewares/error.middleware";
+
+import { toNodeHandler } from "better-auth/node";
+import { auth } from "./lib/auth.js";
+import routes from "./routes/index.js";
+import { errorHandler, notFound } from "./middlewares/error.middleware.js";
 
 const app = express();
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: process.env.FRONTEND_URL || "https://skillbridge-frontend-rho-nine.vercel.app",
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -15,12 +18,7 @@ app.use(
 );
 
 
-app.all("/api/auth/*path", async (req: any, res: any) => {
-  const { toNodeHandler } = await import("better-auth/node");
-  const { getAuth } = await import("./lib/auth");
-  const auth = await getAuth();
-  return toNodeHandler(auth)(req, res);
-});
+app.all("/api/auth/*path", toNodeHandler(auth));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -34,3 +32,5 @@ app.use(notFound);
 app.use(errorHandler);
 
 export default app;
+
+

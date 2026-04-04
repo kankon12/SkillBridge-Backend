@@ -5,8 +5,8 @@ import {
   getBookingById,
   cancelBooking,
   completeBooking,
-} from "./bookings.controller";
-import { authenticate, requireStudent, requireTutor } from "../../middlewares/auth.middleware";
+} from "./bookings.controller.js";
+import { authenticate, requireStudent, requireTutor } from "../../middlewares/auth.middleware.js";
 
 
 const router = Router();
@@ -20,3 +20,5 @@ router.patch("/:id/cancel", requireStudent, cancelBooking);
 router.patch("/:id/complete", requireTutor, completeBooking);
 
 export default router;
+
+

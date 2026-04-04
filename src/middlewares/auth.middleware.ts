@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import { getAuth } from "../lib/auth";
-import { sendError } from "../lib/response";
-import { prisma } from "../lib/prisma";
+
+import { auth } from "../lib/auth.js";
+import { sendError } from "../lib/response.js";
+import { prisma } from "../lib/prisma.js";
 
 type UserRole = "STUDENT" | "TUTOR" | "ADMIN";
 
@@ -25,7 +26,7 @@ export const authenticate = async (
   next: NextFunction
 ) => {
   try {
-    const auth = await getAuth();
+    
     const session = await auth.api.getSession({
       headers: req.headers as any,
     });
@@ -72,3 +73,5 @@ export const requireRole = (...roles: UserRole[]) => {
 export const requireAdmin = requireRole("ADMIN");
 export const requireTutor = requireRole("TUTOR", "ADMIN");
 export const requireStudent = requireRole("STUDENT", "ADMIN");
+
+
