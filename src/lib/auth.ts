@@ -4,7 +4,7 @@ let authInstance: any = null;
 
 export async function getAuth() {
   if (authInstance) return authInstance;
-  
+
   const { betterAuth } = await import("better-auth");
   const { prismaAdapter } = await import("better-auth/adapters/prisma");
 
@@ -21,11 +21,18 @@ export async function getAuth() {
         role: {
           type: "string",
           defaultValue: "STUDENT",
-          input: true,
+          input: true, // registration এ role পাঠানো যাবে
         },
         isBanned: {
           type: "boolean",
           defaultValue: false,
+          input: false, // user নিজে set করতে পারবে না
+        },
+        // BUG FIX: banReason field define করা না থাকলে
+        // better-auth এটাকে unknown field হিসেবে treat করতে পারে।
+        banReason: {
+          type: "string",
+          defaultValue: null,
           input: false,
         },
       },
