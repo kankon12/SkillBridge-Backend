@@ -1,14 +1,9 @@
 import express from "express";
 import cors from "cors";
-import { toNodeHandler } from "better-auth/node";
-import { auth } from "./lib/auth";
-
 import routes from "./routes";
 import { errorHandler, notFound } from "./middlewares/error.middleware";
 
-
 const app = express();
-
 
 app.use(
   cors({
@@ -20,24 +15,21 @@ app.use(
 );
 
 
-app.all("/api/auth/{*path}", toNodeHandler(auth));
+app.all("/api/auth/*path", async (req: any, res: any) => {
+  const { toNodeHandler } = await import("better-auth/node");
+  const { getAuth } = await import("./lib/auth");
+  const auth = await getAuth();
+  return toNodeHandler(auth)(req, res);
+});
 
-// Body Parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-//  Health Check 
 app.get("/health", (req, res) => {
-  res.json({
-    status: "ok",
-    timestamp: new Date().toISOString(),
-  });
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// API Routes (CLEAN)
 app.use("/api", routes);
-
-//  Error Handling 
 app.use(notFound);
 app.use(errorHandler);
 
