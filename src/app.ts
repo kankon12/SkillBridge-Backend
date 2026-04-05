@@ -9,7 +9,7 @@ import { errorHandler, notFound } from "./middlewares/error.middleware.js";
 const app = express();
 
 app.use(
-  cors({
+  cors({            
     origin: process.env.FRONTEND_URL || "https://skillbridge-frontend-rho-nine.vercel.app",
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
