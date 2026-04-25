@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node dist/server.js",
     "dev": "tsx watch src/server.ts",
-    "build": "prisma generate && tsc && cp -r generated dist/generated",
+    "build": "prisma generate && tsc",
     "stripe:webhook": "stripe listen --forward-to localhost:5000/api/payments/webhook",
     "postinstall": "prisma generate",
     "db:seed": "ts-node prisma/seed.ts",
