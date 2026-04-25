@@ -9,13 +9,12 @@ const reviewSchema = z.object({
   comment: z.string().max(500).optional(),
 });
 
-// POST /api/reviews  (Student only)
 export const createReview = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const studentId = req.user!.id;
     const data = reviewSchema.parse(req.body);
 
-    // Verify booking exists, belongs to student, and is COMPLETED
+  
     const booking = await prisma.booking.findUnique({
       where: { id: data.bookingId },
       include: { review: true },
@@ -30,7 +29,7 @@ export const createReview = async (req: Request, res: Response, next: NextFuncti
       return sendError(res, "You have already reviewed this session", 409);
     }
 
-    // Create review and recalculate tutor rating in a transaction
+    
     const review = await prisma.$transaction(async (tx) => {
       const newReview = await tx.review.create({
         data: {
@@ -42,7 +41,7 @@ export const createReview = async (req: Request, res: Response, next: NextFuncti
         },
       });
 
-      // Recalculate tutor's average rating
+      
       const stats = await tx.review.aggregate({
         where: { tutorId: booking.tutorId },
         _avg: { rating: true },
@@ -66,7 +65,7 @@ export const createReview = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-// GET /api/reviews/tutor/:tutorId  (Public - get reviews for a tutor)
+
 export const getTutorReviews = async (req: Request, res: Response, next: NextFunction) => {
   try {
     
