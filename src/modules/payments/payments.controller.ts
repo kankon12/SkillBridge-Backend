@@ -5,7 +5,7 @@ import config from "../../config/index.js";
 import Stripe from "stripe";
 
 // POST /api/payments/webhook
-// ⚠️  এই route-এ raw body দিতে হবে — JSON parser কাজ করবে না
+
 export const stripeWebhook = async (req: Request, res: Response) => {
   const sig = req.headers["stripe-signature"];
 
@@ -16,9 +16,9 @@ export const stripeWebhook = async (req: Request, res: Response) => {
   let event: Stripe.Event;
 
   try {
-    // Stripe signature verify করো raw body দিয়ে
+    
     event = stripe.webhooks.constructEvent(
-      req.body,  // raw Buffer — app.ts-এ express.raw() দিতে হবে
+      req.body,  
       sig,
       config.stripe_webhook_secret
     );
@@ -29,7 +29,7 @@ export const stripeWebhook = async (req: Request, res: Response) => {
 
   try {
     switch (event.type) {
-      // ✅ Payment সফল হলে booking CONFIRMED করো
+      
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
 
@@ -64,7 +64,7 @@ export const stripeWebhook = async (req: Request, res: Response) => {
         break;
       }
 
-      // ❌ Payment fail হলে booking CANCELLED করো
+      
       case "checkout.session.expired": {
         const session = event.data.object as Stripe.Checkout.Session;
         const bookingId = session.metadata?.bookingId;
@@ -84,14 +84,14 @@ export const stripeWebhook = async (req: Request, res: Response) => {
       }
 
       default:
-        // অন্য events ignore করো
+        
         console.log(`Unhandled event type: ${event.type}`);
     }
   } catch (err) {
     console.error("Error processing webhook event:", err);
-    // Stripe-কে 200 দাও নাহলে বারবার retry করবে
+    
   }
 
-  // Stripe সবসময় 200 চায়
+ 
   return res.status(200).json({ received: true });
 };

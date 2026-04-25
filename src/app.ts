@@ -20,14 +20,12 @@ app.use(
 // better-auth handler
 app.all("/api/auth/*path", toNodeHandler(auth));
 
-// ⚠️ Stripe webhook — express.json() এর আগে রাখতে হবে, raw body লাগে
 app.post(
   "/api/payments/webhook",
   express.raw({ type: "application/json" }),
   stripeWebhook
 );
 
-// বাকি সব routes-এর জন্য normal JSON parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
